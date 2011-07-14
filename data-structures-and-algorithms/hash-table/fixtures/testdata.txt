@@ -1,0 +1,7 @@
+23 Twenty-three
+3 Three
+15 Fifteen
+9 Nine
+13 Thirteen
+20 Twenty
+10 Ten
