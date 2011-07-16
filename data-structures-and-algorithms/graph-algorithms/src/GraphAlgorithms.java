@@ -1,105 +1,45 @@
 import java.util.*;
 
 public class GraphAlgorithms {
-	private ArrayList<ArrayList<Integer>> matrix;
-	private Vertex[][] vertices;
-	
-	//prim's variables
-	private int[] paParent;			//store the parent (node coming we're coming from)
-	private int[] paMinDistance;	//store the minimum distance between nodes
-	
-	int[] daDistance;
-	String[] daPath;
-	
-	private int size = 0;
-	
-	private class Vertex {
-		public int x;
-		public int y;
-		public int color;
-		public int value = 0;
-		
-		Vertex( int v, int x, int y, int color ) {
-			this.value = v;
-			this.x = x;
-			this.y = y;
-			this.color = color;
-		}
-		
-		public String toString() {
-			StringBuffer sb = new StringBuffer();
-			sb.append( "x: " + this.x + "\n" );
-			sb.append( "y: " + this.y + "\n" );
-			sb.append( "c: " + this.color + "\n" ) ;
-			sb.append( "val: " + this.value + "\n\n" );
-			return sb.toString();
-		}
-	}
+	private MatrixGraph graph;
 	
 	GraphAlgorithms( ArrayList<ArrayList<Integer>> matrix ) {
-		this.setMatrix( matrix );
-		
-		//populate the prim's fields, and populate the min distance with all infinity (-1)
-		paParent = new int[size];
-		paMinDistance = new int[size];
-		paMinDistance[0] = 0;
-		for(int i = 1; i < size; i++)
-		{
-			paMinDistance[i] = -1;
-		}
+		this.graph = new MatrixGraph( matrix.size() );
+		this.graph.setMatrix( matrix );
 	}
 	
-	public void setMatrix( ArrayList<ArrayList<Integer>> matrix ) {
-		this.matrix = matrix;
-		this.vertices = new Vertex[matrix.size()][matrix.size()];
-		for( int i = 0; i < matrix.size(); i++ ) {
-			for( int j = 0; j < matrix.get(i).size(); j++ ) {
-				vertices[i][j] = new Vertex( matrix.get(i).get(j), i, j, -1 );
-			}
-		}
-		this.size = this.matrix.size();
+	public void setMatrix( ArrayList<ArrayList<Integer>> m ) {
+		this.graph.setMatrix( m );
+	}
+	
+	public void setMatrix( int[][] m ) {
+		this.graph.setMatrix( m );
 	}
 	
 	public ArrayList<ArrayList<Integer>> getMatrix() {
-		return this.matrix;
-	}
-	
-	public ArrayList<Vertex> adjacentTo( Vertex vertex ) {
-		ArrayList<Vertex> a = new ArrayList<Vertex>();
-		for( int i = 0; i < matrix.get( vertex.x ).size(); i++ ) {
-			if( ( matrix.get(vertex.x).get(i) > 0 ) && matrix.get(vertex.x).get(i) < 10  ) {
-				a.add( vertices[i][i] );
-			}
-		}
-		return a;
-	}
-	
-	public int weight( Vertex u, Vertex v ) {
-		//System.out.println( "w(" + u.x + "," + v.x + ") = " + vertices[ u.x ][ v.x ].value );
-		return vertices[ u.x ][ v.x ].value;
+		return this.graph.getMatrix();
 	}
 	
 	public void dijkstras( int root ) {
-		// set all the dijkstra's fields, populate the distance table from the weighted matrix
-		this.daDistance = new int[ size ];
-		this.daPath = new String[ size ];
+		final int[] distance = new int[ this.graph.vertexCount ];
+		final String[] path = new String[ this.graph.vertexCount ];
 				
-		daPath[0] = "0";
-		daDistance[0] = 0;
-		for( int i = 1; i < size; i++ ){
-			daDistance[i] = 10;
+		path[0] = "0";
+		distance[0] = 0;
+		for( int i = 1; i < this.graph.vertexCount; i++ ){
+			distance[i] = 10;
 		}
 		
 		//use a priority queue with dijkstras, rewrote compare method to use distance in heap as comparison, rather than node number
-		PriorityQueue<Integer> matrixQueue = new PriorityQueue<Integer>( size, new Comparator<Integer>(){
+		PriorityQueue<Integer> matrixQueue = new PriorityQueue<Integer>( this.graph.vertexCount, new Comparator<Integer>(){
 			public int compare( Integer i, Integer j ) {
-				if( daDistance[ i ] > 9 ) {
+				if( distance[ i ] > 9 ) {
 					return 1;
-				} else if( daDistance[ j ] > 9 ) {
+				} else if( distance[ j ] > 9 ) {
 					return -1;
-				} else if( daDistance[ i ] < daDistance[ j ] ) {
+				} else if( distance[ i ] < distance[ j ] ) {
 					return -1;
-				} else if( daDistance[ i ] > daDistance[ j ] ) {
+				} else if( distance[ i ] > distance[ j ] ) {
 					return 1;
 				} else {
 					return 0;
@@ -107,20 +47,20 @@ public class GraphAlgorithms {
 			}
 		});		
 		
-		boolean[] enqueued = new boolean[ size ];
+		boolean[] enqueued = new boolean[ this.graph.vertexCount ];
 		matrixQueue.add( root );
 		enqueued[ root ] = true;
 		
 		while( matrixQueue.peek() != null ) {	
 			System.out.println( "Visiting " + matrixQueue.peek() );
-			for( int j = 0; j < size; j++ ) {
-				if( ( matrix.get( matrixQueue.peek() ).get(j) > 0 ) && enqueued[ j ] == false ) {
+			for( int j = 0; j < this.graph.vertexCount; j++ ) {
+				if( ( this.graph.alist.get( matrixQueue.peek() ).get(j) > 0 ) && enqueued[ j ] == false ) {
 					matrixQueue.add(j);
 					enqueued[ j ] = true;
-					if( ( daDistance[ j ] > 9 ) || ( matrix.get( matrixQueue.peek() ).get(j) < matrix.get( matrixQueue.peek() ).get(j) + daDistance[ j ] ) ) {
-						System.out.println("Adding " + matrix.get( matrixQueue.peek() ).get(j) + " to " + j );
-						daDistance[ j ] = matrix.get( matrixQueue.peek() ).get(j) + daDistance[ matrixQueue.peek() ];
-						daPath[ j ] = daPath[ matrixQueue.peek() ] + ", " + j;
+					if( ( distance[ j ] > 9 ) || ( this.graph.alist.get( matrixQueue.peek() ).get(j) < this.graph.alist.get( matrixQueue.peek() ).get(j) + distance[ j ] ) ) {
+						System.out.println("Adding " + this.graph.alist.get( matrixQueue.peek() ).get(j) + " to " + j );
+						distance[ j ] = this.graph.alist.get( matrixQueue.peek() ).get(j) + distance[ matrixQueue.peek() ];
+						path[ j ] = path[ matrixQueue.peek() ] + ", " + j;
 					}
 				}
 			}
@@ -128,106 +68,94 @@ public class GraphAlgorithms {
 		}
 		
 		System.out.println("Node\tDist.\tPath");
-		for( int d = 0; d < size; d++ ) {
-			System.out.println( d + "\t" + daDistance[d] + "\t" + daPath[d] );
+		for( int d = 0; d < this.graph.vertexCount; d++ ) {
+			System.out.println( d + "\t" + distance[d] + "\t" + path[d] );
 		}
 	}
 	
-	public void primsMST(int root)
+	public void primsMST( int root )
 	{
-		int[][] minSpan = new int[size][size];	//store the minimum spanning tree output - starts with all 0s
-		for(int i = 0; i<size; i++)
-		{
-			for(int j = 0; j<size; j++)
-			{
+		//prim's variables
+		final int[] parent;			//store the parent (node coming we're coming from)
+		final int[] minDistance;	//store the minimum distance between nodes
+		
+		//populate the prim's fields, and populate the min distance with all infinity (-1)
+		parent = new int[this.graph.vertexCount];
+		minDistance = new int[this.graph.vertexCount];
+		minDistance[0] = 0;
+		for(int i = 1; i < this.graph.vertexCount; i++) {
+			minDistance[i] = -1;
+		}
+		
+		int[][] minSpan = new int[this.graph.vertexCount][this.graph.vertexCount];	//store the minimum spanning tree output - starts with all 0s
+		for( int i = 0; i < this.graph.vertexCount; i++ ) {
+			for( int j = 0; j < this.graph.vertexCount; j++ ) {
 				minSpan[i][j] = 0;
 			}
 		}
 		
 		//use a priority queue with prims, rewrote compare method to use distance in heap
-		PriorityQueue<Integer> matrixQueue = new PriorityQueue<Integer>(size, new Comparator<Integer>(){
-			public int compare(Integer i, Integer j)
-			{
-				if(paMinDistance[i]==-1)
-				{
+		PriorityQueue<Integer> matrixQueue = new PriorityQueue<Integer>( this.graph.vertexCount, new Comparator<Integer>(){
+			public int compare( Integer i, Integer j ) {
+				if( minDistance[i] == -1 ) {
 					return 1;
-				}
-				else if(paMinDistance[j]==-1)
-				{
+				} else if( minDistance[j] == -1 ) {
 					return -1;
-				}
-				else if(paMinDistance[i]<paMinDistance[j])
-				{
+				} else if( minDistance[i] < minDistance[j] ) {
 					return -1;
-				}
-				else if(paMinDistance[i]>paMinDistance[j])
-				{
+				} else if( minDistance[i] > minDistance[j] ) {
 					return 1;
-				}
-				else
-				{
+				} else {
 					return 0;
 				}
-			}});
+			}
+		});
 		
-		boolean[] known = new boolean[size];	//store whether the edge to that node is known
-		boolean[] visited = new boolean[size];	//store whether the node has been visited
+		boolean[] known = new boolean[this.graph.vertexCount];	//store whether the edge to that node is known
+		boolean[] visited = new boolean[this.graph.vertexCount];	//store whether the node has been visited
 		
 		matrixQueue.add(root);
 		visited[root] = true;
 		
-		while(matrixQueue.peek() != null)
-		{	
+		while( matrixQueue.peek() != null ) {	
 			known[matrixQueue.peek()] = true;
 
-			for (int j=0; j< size; j++)
-			{
-			
-				if(matrix.get(matrixQueue.peek()).get(j)>0 && visited[j]==false && known[j]==false && matrixQueue.peek()!=j)
-				{
-					
-					if(paMinDistance[j]==-1 || matrix.get(matrixQueue.peek()).get(j)< paMinDistance[j])
-					{
-						paMinDistance[j] = matrix.get(matrixQueue.peek()).get(j);
-						paParent[j] = matrixQueue.peek();
+			for ( int j = 0; j < this.graph.vertexCount; j++ ) {
+				if( ( this.graph.alist.get( matrixQueue.peek() ).get(j) > 0 ) && ( visited[j] == false ) && ( known[j] == false ) && ( matrixQueue.peek() !=j ) ) {					
+					if( ( minDistance[j] == -1 ) || ( this.graph.alist.get( matrixQueue.peek() ).get(j) < minDistance[j] ) ) {
+						minDistance[j] = this.graph.alist.get( matrixQueue.peek() ).get(j);
+						parent[j] = matrixQueue.peek();
 					}
 					matrixQueue.add(j);
 				}
-				
 			}
-			if(matrixQueue.peek() != root)
-			{
-				minSpan[paParent[matrixQueue.peek()]][matrixQueue.peek()] = 1;
-				minSpan[matrixQueue.peek()][paParent[matrixQueue.peek()]] = 1;
+			if( matrixQueue.peek() != root ) {
+				minSpan[ parent[ matrixQueue.peek() ] ][ matrixQueue.peek() ] = 1;
+				minSpan[ matrixQueue.peek() ][ parent[ matrixQueue.peek() ] ] = 1;
 			}
-			visited[matrixQueue.peek()] = true;
+			visited[ matrixQueue.peek() ] = true;
 			matrixQueue.remove();
 		}
 		
-		System.out.println("Node        Distance    Path");
-		for(int d = 0; d < size; d++)
-		{
-			System.out.println(d + "           " + paMinDistance[d] + "           " + paParent[d]);
+		System.out.println("Node\tDist.\tPath");
+		for( int d = 0; d < this.graph.vertexCount; d++ ){
+			System.out.println( d + "\t" + minDistance[d] + "\t" + parent[d] );
 		}
 		System.out.println("Minimum Spanning Tree");
-		for(int i = 0; i < size; i++)
-		{
-			for(int j = 0; j < size; j++)
-			{
-				System.out.print(minSpan[i][j] + " ");
+		for( int i = 0; i < this.graph.vertexCount; i++ ) {
+			for( int j = 0; j < this.graph.vertexCount; j++ ) {
+				System.out.print( minSpan[i][j] + " " );
 			}
 			System.out.println("");
 		}
-		
-		
 	}
 	
 	public void BFS( int s ) {
 		Queue<Vertex> q = new LinkedList<Vertex>();
-		q.add( vertices[s][s] );
+		q.add( this.graph.vertices[s][s] );
 		while( q.peek() != null ) {
 			Vertex u = q.remove();
-			for( Vertex v : adjacentTo( u ) ) {
+			for( Vertex v : this.graph.adjacentTo( u ) ) {
 				if( v.color == -1 ) {
 					v.color = 0;
 					q.add( v );
@@ -239,8 +167,8 @@ public class GraphAlgorithms {
 	}
 	
 	public void DFS() {
-		for( int i = 0; i < matrix.size(); i++ ) {
-			Vertex v = vertices[i][i];
+		for( int i = 0; i < this.graph.alist.size(); i++ ) {
+			Vertex v = this.graph.vertices[i][i];
 			if( v.color == -1 ) {
 				DFS_visit( v );
 			}
@@ -249,7 +177,7 @@ public class GraphAlgorithms {
 	
 	public void DFS_visit( Vertex u ) {
 		u.color = 0;
-		for( Vertex v : adjacentTo( u ) ) {
+		for( Vertex v : this.graph.adjacentTo( u ) ) {
 			if( v.color == -1 ) {
 				DFS_visit( v );
 			}
@@ -258,29 +186,29 @@ public class GraphAlgorithms {
 		u.color = 1;
 	}
 	
-	public ArrayList<ArrayList<Integer>> warshall() {
-		ArrayList<ArrayList<Integer>> adj = matrix;
-		for( int i = 0; i < matrix.size(); i++ ) {
-			for( int j = 0; j < matrix.size(); j++ ) {
-				for( int k = 0; k < matrix.size(); k++ ) {
-					if( adj.get( j ).get( k ) == 0 ) {
-						adj.get( j ).set( k, ( adj.get( j ).get( i ) == 1 && adj.get( i ).get( k ) == 1 ) ? 1 : 0 );
+	public MatrixGraph warshall() {
+		int[][] adj = this.graph.matrix;
+		for( int i = 0; i < this.graph.matrix.length; i++ ) {
+			for( int j = 0; j < this.graph.matrix.length; j++ ) {
+				for( int k = 0; k < this.graph.matrix.length; k++ ) {
+					if( adj[j][i] == 0 ) {
+						adj[j][k] = ( ( adj[j][i] == 1 && adj[i][k] == 1 ) ? 1 : 0 );
 					}
 				}
 			}
 		}
-		return adj;
+		return new MatrixGraph( adj );
 	}
 	
-	public ArrayList<ArrayList<Integer>> floyd_warshall() {
-		ArrayList<ArrayList<Integer>> adj = matrix;
-		for( int k = 0; k < matrix.size(); k++ ) {
-			for( int i = 0; i < matrix.size(); i++ ) {
-				for( int j = 0; j < matrix.size(); j++ ) {
-					adj.get(i).set( j, Math.min( adj.get(i).get(j), adj.get(i).get(k) + adj.get(k).get(j) ) );
+	public MatrixGraph floyd_warshall() {
+		int[][] adj = this.graph.matrix;
+		for( int i = 0; i < this.graph.matrix.length; i++ ) {
+			for( int j = 0; j < this.graph.matrix.length; j++ ) {
+				for( int k = 0; k < this.graph.matrix.length; k++ ) {
+					adj[j][k] = Math.min( adj[j][i], adj[j][i] + adj[i][k] );
 				}
 			}
 		}
-		return adj;
+		return new MatrixGraph( adj );
 	}
 }
