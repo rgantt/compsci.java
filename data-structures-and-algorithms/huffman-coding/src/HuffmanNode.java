@@ -4,6 +4,7 @@ public class HuffmanNode implements Comparable {
 	public int freq;
 	public HuffmanNode left;
 	public HuffmanNode right;
+	public String code;
 	
 	public HuffmanNode( HuffmanNode left, HuffmanNode right, CharObject c ) {
 		this.left = left;
