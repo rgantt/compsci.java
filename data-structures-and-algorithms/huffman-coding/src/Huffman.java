@@ -1,7 +1,7 @@
 import java.util.*;
 
 public class Huffman {
-	public HuffmanNode encodeHuffman( ArrayList<CharObject> C ) {
+	public HuffmanNode huffmanTree( ArrayList<CharObject> C ) {
 		int n = C.size();
 		PriorityQueue<HuffmanNode> Q = new PriorityQueue<HuffmanNode>( n );
 		for( CharObject c : C ) {
@@ -15,5 +15,24 @@ public class Huffman {
 			Q.add( z );
 		}
 		return Q.poll();
+	}
+	
+		
+	public HuffmanNode huffmanCodes( HuffmanNode node, StringBuffer code ) {
+		if( node.left != null ) {
+			code.append("0");
+			node.left.code = code.toString();
+			huffmanCodes( node.left, code );
+			code.deleteCharAt( code.length()-1 );
+		}
+		
+		if( node.right != null ) {
+			code.append("1");
+			node.right.code = code.toString();
+			huffmanCodes( node.right, code );
+			code.deleteCharAt( code.length()-1 );
+		}
+		
+		return node;
 	}
 }
