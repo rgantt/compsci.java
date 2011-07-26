@@ -5,30 +5,17 @@ public class Driver {
 	public static final int INDENT = 4;
 	
 	public static void main( String[] args ) {
-		// Read in a file, generate an ArrayList of CharObject-s to pass to Huffman
 		Hashtable<Character,Integer> hashTable = new Hashtable<Character,Integer>();
 		try {
-			File file = new File("fixtures/input_file.txt");
-			FileInputStream s = new FileInputStream( file );
-			long fileLength = file.length();
-			byte[] bytes = new byte[ (int)fileLength ];
-			
-			int offset = 0;
-			int numRead = 0;
-			while( offset < bytes.length && ( numRead = s.read( bytes, offset, bytes.length-offset ) ) >= 0 ) {
-				offset += numRead;
-			}
-			s.close();
-			
-			StringBuffer input = new StringBuffer("");
-			for( int i = 0; i < bytes.length; i++ ) {
-				Character b = (char)bytes[i];
-				input.append(b);
-				if( hashTable.containsKey( b ) ) {
-					Integer val = hashTable.remove( b );
-					hashTable.put( b, val+1 );
+			ArrayList<Character> inChars = readCharsFromFile("fixtures/input_file.txt");
+			StringBuilder input = new StringBuilder("");
+			for( Character c : inChars ) {
+				input.append(c);
+				if( hashTable.containsKey(c) ) {
+					Integer val = hashTable.remove(c);
+					hashTable.put( c, val+1 );
 				} else {
-					hashTable.put( b, 1 );
+					hashTable.put( c, 1 );
 				}
 			}
 			System.out.print( input.toString() );
@@ -42,70 +29,55 @@ public class Driver {
 			
 			Huffman h = new Huffman();
 			HuffmanNode hn = h.huffmanTree( c );
-			Hashtable<Character,String> hash = new Hashtable<Character,String>();
-			HuffmanNode ht = h.huffmanCodes( hn, hash, new StringBuffer("") );
-			//printHelper( ht, 1 );
-			System.out.println( encodeFile( "output/encoded.txt", hash ) );
-			System.out.println( decodeFile( "output/encoded.txt", hash ) );
+			Hashtable<Character,String> codewords = new Hashtable<Character,String>();
+			HuffmanNode ht = h.huffmanCodes( hn, codewords, new StringBuilder("") );
+			printHelper( ht, 1 );
+			System.out.println( encodeFile( "output/encoded.txt", codewords ) );
+			System.out.println( decodeFile( "output/encoded.txt", codewords ) );
 		} catch( IOException e ) {
 			System.out.println( e.getMessage() );
 		}
 	}
 	
-	private static String encodeFile( String filename, Hashtable<Character,String> hash ) throws IOException {
-		BufferedWriter out = new BufferedWriter( new FileWriter( filename ) );
-		
-		File file = new File("fixtures/input_file.txt");
-		FileInputStream s = new FileInputStream( new File("fixtures/input_file.txt") );
-		long fileLength = file.length();
-		byte[] bytes = new byte[ (int)fileLength ];
-		
-		int offset = 0;
-		int numRead = 0;
-		while( offset < bytes.length && ( numRead = s.read( bytes, offset, bytes.length-offset ) ) >= 0 ) {
-			offset += numRead;
-		}
-		s.close();
-		
-		StringBuffer str = new StringBuffer("");
-		for( int i = 0; i < bytes.length; i++ ) {
-			Character b = (char)bytes[i];
+	private static String encodeFile( String filename, Hashtable<Character,String> hash ) throws IOException {		
+		ArrayList<Character> inChars = readCharsFromFile("fixtures/input_file.txt");
+		PrintWriter out = new PrintWriter( new BufferedWriter( new FileWriter( filename ) ) );
+		StringBuilder str = new StringBuilder( inChars.size() );
+		for( Character b : inChars ) {
 			str.append( hash.get( b ) );
+			out.write( hash.get( b ) );
 		}
-		out.write( str.toString() );
 		out.close();
 		return str.toString();
 	}
 	
 	private static String decodeFile( String filename, Hashtable<Character,String> hash ) throws IOException {
-		File file = new File( filename );
-		FileInputStream s = new FileInputStream( file );
-		long fileLength = file.length();
-		byte[] bytes = new byte[ (int)fileLength ];
-		
-		int offset = 0;
-		int numRead = 0;
-		while( offset < bytes.length && ( numRead = s.read( bytes, offset, bytes.length-offset ) ) >= 0 ) {
-			offset += numRead;
-		}
-		s.close();
-		
+		ArrayList<Character> inChars = readCharsFromFile( filename );
 		Hashtable<String,Character> reverse = new Hashtable<String,Character>();
 		for( Character c : hash.keySet() ) {
 			reverse.put( hash.get( c ), c );
 		}
-		
-		StringBuffer decoded = new StringBuffer("");
+		StringBuilder decoded = new StringBuilder("");
 		int pos = 0;
-		while( pos < bytes.length ) {
-			StringBuffer key = new StringBuffer("");
+		while( pos < inChars.size() ) {
+			StringBuilder key = new StringBuilder("");
 			while( !reverse.containsKey( key.toString() ) ) {
-				key.append( (char)bytes[pos] );
+				key.append( (char)inChars.get(pos) );
 				pos++;
 			}
 			decoded.append( reverse.get( key.toString() ) );
 		}
 		return decoded.toString();
+	}
+	
+	private static ArrayList<Character> readCharsFromFile( String filename ) throws IOException {
+		FileInputStream s = new FileInputStream( new File( filename ) );
+		ArrayList<Character> chars = new ArrayList<Character>();
+		while( s.available() > 0 ) {
+			chars.add( (char)s.read() );
+		}
+		s.close();
+		return chars;
 	}
 	
 	private static void printHelper( HuffmanNode n, int indent ) {
