@@ -1,6 +1,6 @@
 
 public class HuffmanNode implements Comparable {
-	public char label;
+	public char label = '\u0000';
 	public int freq;
 	public HuffmanNode left;
 	public HuffmanNode right;
