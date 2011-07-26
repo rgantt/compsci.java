@@ -11,20 +11,19 @@ public class Driver {
 			File file = new File("fixtures/input_file.txt");
 			FileInputStream s = new FileInputStream( file );
 			long fileLength = file.length();
-			byte[] bytes = new byte[(int)fileLength];
+			byte[] bytes = new byte[ (int)fileLength ];
 			
-			System.out.println("Success in opening fixture");
 			int offset = 0;
 			int numRead = 0;
 			while( offset < bytes.length && ( numRead = s.read( bytes, offset, bytes.length-offset ) ) >= 0 ) {
-				System.out.println("Increasing offset by " + numRead );
 				offset += numRead;
 			}
 			s.close();
 			
+			StringBuffer input = new StringBuffer("");
 			for( int i = 0; i < bytes.length; i++ ) {
 				Character b = (char)bytes[i];
-				System.out.println("Messing with " + b );
+				input.append(b);
 				if( hashTable.containsKey( b ) ) {
 					Integer val = hashTable.remove( b );
 					hashTable.put( b, val+1 );
@@ -32,6 +31,7 @@ public class Driver {
 					hashTable.put( b, 1 );
 				}
 			}
+			System.out.print( input.toString() );
 			
 			ArrayList<CharObject> c = new ArrayList<CharObject>();
 			for( Enumeration<Character> chars = hashTable.keys(); chars.hasMoreElements(); ) {
@@ -42,11 +42,70 @@ public class Driver {
 			
 			Huffman h = new Huffman();
 			HuffmanNode hn = h.huffmanTree( c );
-			HuffmanNode ht = h.huffmanCodes( hn, new StringBuffer("") );
-			printHelper( ht, 1 );
+			Hashtable<Character,String> hash = new Hashtable<Character,String>();
+			HuffmanNode ht = h.huffmanCodes( hn, hash, new StringBuffer("") );
+			//printHelper( ht, 1 );
+			System.out.println( encodeFile( "output/encoded.txt", hash ) );
+			System.out.println( decodeFile( "output/encoded.txt", hash ) );
 		} catch( IOException e ) {
 			System.out.println( e.getMessage() );
 		}
+	}
+	
+	private static String encodeFile( String filename, Hashtable<Character,String> hash ) throws IOException {
+		BufferedWriter out = new BufferedWriter( new FileWriter( filename ) );
+		
+		File file = new File("fixtures/input_file.txt");
+		FileInputStream s = new FileInputStream( new File("fixtures/input_file.txt") );
+		long fileLength = file.length();
+		byte[] bytes = new byte[ (int)fileLength ];
+		
+		int offset = 0;
+		int numRead = 0;
+		while( offset < bytes.length && ( numRead = s.read( bytes, offset, bytes.length-offset ) ) >= 0 ) {
+			offset += numRead;
+		}
+		s.close();
+		
+		StringBuffer str = new StringBuffer("");
+		for( int i = 0; i < bytes.length; i++ ) {
+			Character b = (char)bytes[i];
+			str.append( hash.get( b ) );
+		}
+		out.write( str.toString() );
+		out.close();
+		return str.toString();
+	}
+	
+	private static String decodeFile( String filename, Hashtable<Character,String> hash ) throws IOException {
+		File file = new File( filename );
+		FileInputStream s = new FileInputStream( file );
+		long fileLength = file.length();
+		byte[] bytes = new byte[ (int)fileLength ];
+		
+		int offset = 0;
+		int numRead = 0;
+		while( offset < bytes.length && ( numRead = s.read( bytes, offset, bytes.length-offset ) ) >= 0 ) {
+			offset += numRead;
+		}
+		s.close();
+		
+		Hashtable<String,Character> reverse = new Hashtable<String,Character>();
+		for( Character c : hash.keySet() ) {
+			reverse.put( hash.get( c ), c );
+		}
+		
+		StringBuffer decoded = new StringBuffer("");
+		int pos = 0;
+		while( pos < bytes.length ) {
+			StringBuffer key = new StringBuffer("");
+			while( !reverse.containsKey( key.toString() ) ) {
+				key.append( (char)bytes[pos] );
+				pos++;
+			}
+			decoded.append( reverse.get( key.toString() ) );
+		}
+		return decoded.toString();
 	}
 	
 	private static void printHelper( HuffmanNode n, int indent ) {
@@ -59,11 +118,7 @@ public class Driver {
 		}
 		for ( int i = 0; i < indent; i++ )
 			System.out.print(" ");
-		if( new Character( n.label ).equals( null ) ) {
-			System.out.println( "<" + n.freq + " ("+n.code+")>" );
-		} else {
-			System.out.println( "<" + n.label + ":" + n.freq + " ("+n.code+")>" );
-		}
+		System.out.println( "<" + n.label + ":" + n.freq + " ("+n.code+")>" );
 		if ( n.left != null ) {
 			printHelper( n.left, indent + INDENT );
 		}
