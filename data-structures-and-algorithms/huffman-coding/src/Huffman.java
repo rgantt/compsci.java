@@ -17,19 +17,22 @@ public class Huffman {
 		return Q.poll();
 	}
 	
+	public HuffmanNode huffmanCodes( HuffmanNode node, Hashtable<Character,String> h, StringBuffer code ) {
+		if( node.label != '\u0000' ) {
+			h.put( node.label, code.toString() );
+		}
 		
-	public HuffmanNode huffmanCodes( HuffmanNode node, StringBuffer code ) {
 		if( node.left != null ) {
 			code.append("0");
 			node.left.code = code.toString();
-			huffmanCodes( node.left, code );
+			huffmanCodes( node.left, h, code );
 			code.deleteCharAt( code.length()-1 );
 		}
 		
 		if( node.right != null ) {
 			code.append("1");
 			node.right.code = code.toString();
-			huffmanCodes( node.right, code );
+			huffmanCodes( node.right, h, code );
 			code.deleteCharAt( code.length()-1 );
 		}
 		
