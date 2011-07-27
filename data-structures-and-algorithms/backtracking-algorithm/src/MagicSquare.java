@@ -22,40 +22,36 @@ public class MagicSquare {
 	}
 	
 	private boolean test( int n ) {
-		//only check the square at ns 2, 5, 6, 7, & 8
-		if( n == 2 ) {
-			if( A[0] + A[1] + A[2] == this.ROW_SUM ) {
+		switch( n ) {
+			case 2:
+				return checkRow( 2 );
+			case 5:
+				return checkRow( 5 );
+			case 6:
+				return ( checkColumn( 6 ) && checkNegDiagonal() );
+			case 7:
+				return checkColumn( 7 );
+			case 8:
+				return ( checkColumn( 8 ) && checkRow( 8 ) && checkPosDiagonal() );
+			default:
 				return true;
-			} else {
-				return false;
-			}
-		} else if ( n == 5 ) {
-			if( A[3] + A[4] + A[5] == this.ROW_SUM ) {
-				return true;
-			} else {
-				return false;
-			}
-		} else if( n == 6 ) {
-			if( A[0] + A[3] + A[6] == this.ROW_SUM ) {
-				return true;
-			} else {
-				return false;
-			}
-		} else if( n == 7 ) {
-			if( A[1] + A[4] + A[7] == this.ROW_SUM ) {
-				return true;
-			} else {
-				return false;
-			}
-		} else if( n == 8 ) {
-			if( A[2] + A[5] + A[8] == this.ROW_SUM && A[0] + A[4] + A[8] == this.ROW_SUM ) {
-				return true;
-			} else {
-				return false;
-			}
-		} else {
-			return true;
 		}
+	}
+	
+	private boolean checkRow( int n ) {
+		return ( A[n-2] + A[n-1] + A[n] == this.ROW_SUM );
+	}
+	
+	private boolean checkColumn( int n ) {
+		return ( A[n-6] + A[n-3] + A[n] == this.ROW_SUM );
+	}
+	
+	private boolean checkNegDiagonal() {
+		return ( A[2] + A[4] + A[6] == this.ROW_SUM );
+	}
+	
+	private boolean checkPosDiagonal() {
+		return ( A[0] + A[4] + A[8] == this.ROW_SUM );
 	}
 	
 	private void printSolution() {
@@ -69,7 +65,6 @@ public class MagicSquare {
 	}
 	
 	public static void main( String[] args ) {
-		MagicSquare ms = new MagicSquare();
-		ms.nextSquare( 0 );
+		new MagicSquare().nextSquare(0);
 	}
 }
