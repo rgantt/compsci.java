@@ -6,7 +6,7 @@ abstract public class Turing {
 	public enum State {
 		START, ACCEPT, REJECT, ERROR, HALT,
 		SEARCH_Y, SEARCH_X, NO_X_LEFT, NO_Y_LEFT,
-		DIFF_0, DIFF_PLUS_1, DIFF_PLUS_2, DIFF_MINUS_1, DIFF_MINUS_2
+		COMPUTE, DIFF_0, DIFF_PLUS_1, DIFF_PLUS_2, DIFF_MINUS_1, DIFF_MINUS_2
 	};
 	
 	protected final char nullChar = ';';
